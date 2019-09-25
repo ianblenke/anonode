@@ -1,0 +1,3 @@
+[submodule "easy-ssb-pub"]
+	path = easy-ssb-pub
+	url = https://github.com/sofwerx/easy-ssb-pub/

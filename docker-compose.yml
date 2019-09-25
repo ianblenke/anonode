@@ -1,0 +1,98 @@
+version: "2.1"
+
+x-logging:
+  &default-logging
+  options:
+    max-size: '12m'
+    max-file: '5'
+  driver: json-file
+
+networks:
+
+  anonode:
+    driver: bridge
+
+volumes:
+
+  music:
+    driver: local
+  video:
+    driver: local
+  pictures:
+    driver: local
+  i2p:
+    driver: local
+  tahoe-lafs:
+    driver: local
+  ssb:
+    driver: local
+
+services:
+
+  # upnp
+  rygel:
+    container_name: rygel
+    hostname: rygel
+    image: sameersbn/rygel:latest
+    network_mode: host
+    volumes:
+    - music:/music
+    - video:/video
+    - pictures:/pictures
+    logging: *default-logging
+
+  i2p:
+    container_name: i2p
+    hostname: i2p
+    image: geti2p/i2p
+    volumes:
+    - i2p:/var/lib/i2p
+    networks:
+    - anonode
+    ports:
+    - '4444:4444'
+    - '4445:4445'
+    - '6668:6668'
+    - '7657:7657'
+    logging: *default-logging
+
+  tor:
+    container_name: tor
+    hostname: tor
+    build: ./tor
+    image: tor
+    networks:
+    - anonode
+    ports:
+    - 9050:9050
+    - 9150:9150
+    logging: *default-logging
+
+  tahoe-lafs:
+    container_name: tahoe-lafs
+    hostname: tahoe-lafs
+    build: tahoe-lafs
+    image: tahoe-lafs
+    networks:
+    - anonode
+    logging: *default-logging
+
+  ssb:
+    container_name: ssb
+    hostname: ssb
+    build: easy-ssb-pub/
+    environment:
+      HOST: "ssb.local"
+      HOME: "/root"
+      DEBUG: "*"
+    ports:
+      - "80:80"
+      - "8008:8008"
+      - "8007:8007"
+    volumes:
+      - ssb:/root/.ssb
+    mem_limit: 4500M
+    restart: unless-stopped
+    networks:
+      - default
+    logging: *default-logging
